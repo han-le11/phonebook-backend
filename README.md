@@ -6,6 +6,11 @@ Small backend project in [part 3](https://fullstackopen.com/en/part3/node_js_and
 The JSON Server uses port 3001.
 
 ## Usage
+Install all up-to-date dependencies of the project defined in <i>package.json</i> by running this command in the project's root directory:
+<pre>
+npm install
+</pre>
+
 We can run the program from the command line:
 <pre>
 npm start
