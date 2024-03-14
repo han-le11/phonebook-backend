@@ -1,7 +1,7 @@
 # phonebook-backend
 
 ## Description
-Small backend project in [part 3](https://fullstackopen.com/en/part3/node_js_and_express#exercises-3-1-3-6) of the [Full Stack Open course](https://fullstackopen.com/en/).
+Small backend project for a phonebook app in [part 3](https://fullstackopen.com/en/part3/node_js_and_express#exercises-3-1-3-6) of the [Full Stack Open course](https://fullstackopen.com/en/). Repository of the frontend part of the phonebook is [here](https://github.com/han-le11/fullstack-projects/tree/master/part2/phonebook).
 
 The JSON Server uses port 3001.
 
