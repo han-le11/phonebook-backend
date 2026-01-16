@@ -1,4 +1,6 @@
-const http = require('http')  // 
+const http = require('http')  
+const express = require('express')
+const app = express()
 
 let phonebook = [
     { 
@@ -23,10 +25,22 @@ let phonebook = [
     }
 ]
 
-const app = http.createServer((request, response) => {
-    response.writeHead(200, { 'Content-Type': 'application/json' })
-    response.end(JSON.stringify(phonebook))
+
+app.get('/', (request, response) => {
+  response.send(JSON.stringify(phonebook))
+})
+
+app.get('/api/persons', (request, response) => {
+    response.json(phonebook)
   })
+
+// use the createServer method of the http module to create a new web server
+//const app = http.createServer((request, response) => {
+    //response.writeHead(200, { 'Content-Type': 'application/json' })
+    //response.end(JSON.stringify(phonebook))
+  //})
+
+
 
 const PORT = 3001
 app.listen(PORT)
