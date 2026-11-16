@@ -1,4 +1,3 @@
-const http = require('http')  
 const express = require('express')
 const app = express()
 
@@ -25,22 +24,30 @@ let phonebook = [
     }
 ]
 
-
-app.get('/', (request, response) => {
-  response.send(JSON.stringify(phonebook))
-})
-
 app.get('/api/persons', (request, response) => {
     response.json(phonebook)
   })
 
-// use the createServer method of the http module to create a new web server
-//const app = http.createServer((request, response) => {
-    //response.writeHead(200, { 'Content-Type': 'application/json' })
-    //response.end(JSON.stringify(phonebook))
-  //})
+app.get('/info', (request, response) => {
+  response.send(`<p>Phonebook has info for ${phonebook.length} people</p><p>${new Date()}</p>`)
+})
 
+app.get('/api/persons/:id', (request, response) => {
+    const id = Number(request.params.id)
+    const person = phonebook.find(person => person.id === id)
 
+    if (person) {
+      response.json(person)
+    } else {
+      response.status(404).end()
+    }
+  })
+
+app.delete('/api/persons/:id', (request, response) => {
+    const id = Number(request.params.id)
+    phonebook = phonebook.filter(person => person.id !== id)
+    response.status(204).end()  // 204 no content
+  })
 
 const PORT = 3001
 app.listen(PORT)
