@@ -1,7 +1,13 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
 
-app.use(express.json())  // middleware to parse application/json
+app.use(express.json())  // parse application/json
+app.use(morgan('tiny'))
+morgan.token('body', function (req){
+    return JSON.stringify(req.body)
+})
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 let phonebook = [
     { 
@@ -25,6 +31,7 @@ let phonebook = [
       "number": "39-23-6423122"
     }
 ]
+
 
 app.get('/', (request, response) => {
     response.send('<h1>Phonebook backend</h1>')
