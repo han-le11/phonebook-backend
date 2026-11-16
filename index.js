@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())  // middleware to parse application/json
+
 let phonebook = [
     { 
       "id": 1,
@@ -23,6 +25,11 @@ let phonebook = [
       "number": "39-23-6423122"
     }
 ]
+
+app.get('/', (request, response) => {
+    response.send('<h1>Phonebook backend</h1>')
+  })
+
 
 app.get('/api/persons', (request, response) => {
     response.json(phonebook)
@@ -47,6 +54,24 @@ app.delete('/api/persons/:id', (request, response) => {
     const id = Number(request.params.id)
     phonebook = phonebook.filter(person => person.id !== id)
     response.status(204).end()  // 204 no content
+  })
+
+app.post('/api/persons', (request, response) => {
+    const body = request.body
+    if (!body.name || !body.number) {
+      return response.status(400).json({ error: 'name or number missing' })
+    }
+
+    if (phonebook.find(person => person.name === body.name)) {
+      return response.status(400).json({ error: 'name must be unique' })
+    }
+    const person = {
+        id: Math.floor(Math.random() * 100000),
+        name: body.name,
+        number: body.number,
+    }
+    phonebook = phonebook.concat(person)
+    response.json(person)
   })
 
 const PORT = 3001
