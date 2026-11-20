@@ -7,57 +7,52 @@ const Person = require('./models/person')
 const app = express()
 
 app.use(express.static('dist'))
-app.use(express.json())  // parse application/json
+app.use(express.json())  // json-parser middleware to parse application/json
 
 morgan.token('body', function (req){
     return JSON.stringify(req.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
+// ----------- start of endpoints -----------
 
 app.get('/', (request, response) => {
     response.send('<h1>Phonebook backend</h1>')
   })
 
 
-app.get('/api/persons', (request, response) => {
-    Person.find({}).then(persons => {
-      response.json(persons)
-    })
+app.get('/api/persons', (request, response, next) => {
+    Person.find({})
+        .then(persons => {
+            response.json(persons)
+        })
+        .catch(error => next(error))
   })
 
 
-app.get('/info', (request, response) => {
-  Person.countDocuments({}).then(count => {
-      response.send(`<p>Phonebook has info for ${count} people</p><p>${new Date()}</p>`)
-  })
+app.get('/info', (request, response, next) => {
+  Person.countDocuments({})
+      .then(count => {
+          response.send(`<p>Phonebook has info for ${count} people</p><p>${new Date()}</p>`)
+      })
+      .catch(error => next(error))
 })
 
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
-    .then(note => {
+    .then(p => {
       if (p) {
         response.json(p)
       } else {
         response.status(404).end()
       }
     })
-    .catch(error => {
-      console.log(error)
-      response.status(400).send({ error: 'malformatted id' })
-    })
+    .catch(error => next(error))
 })
 
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    Person.findByIdAndDelete(id).then(() => {
-        response.status(204).end()  // status(204) sets the HTTP status to “No Content”
-    })
-})
-
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
 
     if (!body.name || !body.number) {
@@ -69,10 +64,55 @@ app.post('/api/persons', (request, response) => {
         number: body.number,
     })
 
-    person.save().then(savedPerson => {
+    person.save()
+        .then(savedPerson => {
         response.json(savedPerson)
-    })
+        })
+        .catch(error => next(error))
 })
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const { name, number } = request.body
+    Person.findByIdAndUpdate(
+        request.params.id,
+        { name, number },
+    )
+        .then(updatedPerson => {
+            if (updatedPerson) {
+                response.json(updatedPerson)
+            } else {
+                response.status(404).end()
+            }
+        })
+        .catch(error => next(error))
+})
+
+app.delete('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id
+    Person.findByIdAndDelete(id)
+        .then(() => {
+            response.status(204).end()  // status(204) sets the HTTP status to “No Content”
+        })
+        .catch(error => next(error))
+})
+// ----------- end of endpoints -----------
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)  // handler of requests with unknown endpoint
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+  next(error)
+}
+
+// this has to be the last loaded middleware, also all the routes should be registered before this!
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
