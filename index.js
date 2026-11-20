@@ -8,11 +8,12 @@ const app = express()
 
 app.use(express.static('dist'))
 app.use(express.json())  // parse application/json
-app.use(morgan('tiny'))
+
 morgan.token('body', function (req){
     return JSON.stringify(req.body)
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
 
 app.get('/', (request, response) => {
     response.send('<h1>Phonebook backend</h1>')
@@ -25,28 +26,36 @@ app.get('/api/persons', (request, response) => {
     })
   })
 
+
 app.get('/info', (request, response) => {
   Person.countDocuments({}).then(count => {
       response.send(`<p>Phonebook has info for ${count} people</p><p>${new Date()}</p>`)
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
 
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end()
-    }
-  })
+app.get('/api/persons/:id', (request, response) => {
+  Person.findById(request.params.id)
+    .then(note => {
+      if (p) {
+        response.json(p)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      response.status(400).send({ error: 'malformatted id' })
+    })
+})
+
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-    response.status(204).end()  // 204 no content
-  })
+    const id = request.params.id
+    Person.findByIdAndDelete(id).then(() => {
+        response.status(204).end()  // status(204) sets the HTTP status to “No Content”
+    })
+})
 
 app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -63,7 +72,7 @@ app.post('/api/persons', (request, response) => {
     person.save().then(savedPerson => {
         response.json(savedPerson)
     })
-  })
+})
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
