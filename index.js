@@ -73,9 +73,11 @@ app.post('/api/persons', (request, response, next) => {
 
 app.put('/api/persons/:id', (request, response, next) => {
     const { name, number } = request.body
+
     Person.findByIdAndUpdate(
         request.params.id,
         { name, number },
+        { new: true, },
     )
         .then(updatedPerson => {
             if (updatedPerson) {
@@ -88,8 +90,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
-    const id = request.params.id
-    Person.findByIdAndDelete(id)
+    Person.findByIdAndDelete(request.params.id)
         .then(() => {
             response.status(204).end()  // status(204) sets the HTTP status to “No Content”
         })
@@ -107,6 +108,8 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message)
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+      return response.status(400).json({error: error.message})
   }
   next(error)
 }
